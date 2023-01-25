@@ -1,60 +1,56 @@
 .comment {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0 8px;
-  margin-bottom: 24px;
-  justify-content: space-between;
-  align-items: flex-start;
-  &:first-of-type {
-    margin-top: 12px;
-  }
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 12px;
+    justify-content: space-between;
+    align-items: flex-start;
+    &:first-of-type {
+        margin-top: 12px;
+    }
 }
 
 .comment-text {
-  @include cardDescription();
-  font-size: 1em;
-  text-align: left;
+    @include cardDescription();
+    font-size: 0.9em;
+    text-align: left;
 }
 
 .commentBox {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  margin-top: 8px;
-  padding-left: 10px;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 8px;
 }
 
 .comment__author-text {
-  align-self: center;
+    align-self: flex-start;
 }
 
 .comment-message {
-  width: 70%;
+    width: 70%;
 }
 
 .comment-buttons {
-  display: flex;
-  width: 20%;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    width: 20%;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .comment-button {
-  width: 12px;
-  height: 12px;
-  background-size: 12px 12px;
+    width: 8px;
+    height: 8px;
+    background-size: 8px 8px;
+    background-repeat: no-repeat;
+    background-color: inherit;
+    border: none;
+    cursor: pointer;
+    &:hover{
+        opacity: 0.3;
+    }
 }
 
-.comment-box {
-  display: flex;
-  justify-content: center;
-}
-
-.comment-img {
-  width: 30px;
-  height: 30px;
-  object-fit: cover;
-  margin-right: 12px;
-  border-radius: 50px;
+.comment-author {
+    background-color: #fff;
 }

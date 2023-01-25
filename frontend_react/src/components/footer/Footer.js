@@ -4,13 +4,13 @@ import { useLocation } from "react-router";
 function Footer() {
   let location = useLocation().pathname;
   return (
-    <footer className="footer">
+    <footer className="Footer">
       {location === "/sign-up" ? (
         ""
       ) : location === "/sign-in" ? (
         ""
       ) : (
-        <p className="footer__copyright">
+        <p className="Footer__copyright">
           &#169; Skypro 2022. All rights reserved.
         </p>
       )}

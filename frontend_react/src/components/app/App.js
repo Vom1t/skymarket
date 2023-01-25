@@ -1,6 +1,5 @@
-import React, { useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useHistory, Switch, Route } from "react-router-dom";
-import MainContext from "../../context/MainContext";
 import Footer from "../footer/Footer";
 import PopupNavigation from "../popopNavigation/PopupNavigation";
 import Header from "../header/Header";
@@ -10,14 +9,20 @@ import PrivateRoute from "../privateRoute/PrivateRoute";
 import Main from "../main/Main";
 import UserProfile from "../userProfile/UserProfile";
 import SinglePage from "../singlePage/SinglePage";
-import NewAdd from "../newAdd/NewAdd";
+import AddCard from "../addCard/addCard";
 import EmailLink from "../emailLink/EmailLink";
 import ChangePassword from "../changePassword/ChangePassword";
 
 function App() {
-  const { closePopup, isPopupNavigatorOpen, handleOpenPopup } =
-    useContext(MainContext);
+  const [isPopupNavigatorOpen, setIsPopupNavigatorOpen] = useState(false);
   let history = useHistory();
+  const closePopup = () => {
+    setIsPopupNavigatorOpen(false);
+  };
+
+  const handleOpenPopup = () => {
+    setIsPopupNavigatorOpen(true);
+  };
 
   useEffect(() => {
     //обработчик закрытия попапов по нажатия на ESC и overlay
@@ -44,7 +49,7 @@ function App() {
       document.removeEventListener("click", handleCloseByOverlay);
       document.removeEventListener("keydown", handleEscClose);
     };
-  }, [closePopup]);
+  }, []);
 
   const logoutUser = () => {
     localStorage.removeItem("authTokens");
@@ -54,7 +59,7 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <div className="App">
       <Header onOpen={handleOpenPopup} logOut={logoutUser} />
       <Switch>
         <Route exact path="/sign-in" component={Login} />
@@ -70,7 +75,7 @@ function App() {
         <PrivateRoute exact path="/profile/" component={UserProfile} />
         <PrivateRoute exact path="/ads/:id" component={SinglePage} />
         <PrivateRoute exact path="/profile/ads/:id/" component={SinglePage} />
-        <PrivateRoute exact path="/newAd" component={NewAdd} />
+        <PrivateRoute exact path="/newAd" component={AddCard} />
         <Route exact path="/" component={Main} />
       </Switch>
       <Footer />

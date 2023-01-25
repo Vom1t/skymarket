@@ -1,85 +1,87 @@
 import React, { useState, useEffect, useContext } from "react";
+import useAxios from "../../utils/useAxios";
 import AuthContext from "../../context/AuthContext";
 import MainContext from "../../context/MainContext";
 import Promo from "../promo/Promo";
-import Preloader from "../preloader/Preloader";
+//import SearchForm from "../searchForm/SearchForm";
 import Cards from "../cards/Cards";
+import { Pagination, PaginationItem } from "@mui/material";
 
 function Main(props) {
   const [pageQty, setPageQty] = useState(0);
-  const [ad, setAd] = useState("");
   const [adsDefault, setAdsDefault] = useState([]);
-  const [page, setPage] = useState(props.location.search?.split("=")[1] || 1);
+  //const [ad, setAd] = useState("");
+  const [page, setPage] = useState(
+    parseInt(props.location.search?.split("=")[1] || 1)
+  );
   let { user } = useContext(AuthContext);
-  let {
-    ads,
-    setAds,
-    setIsLoading,
-    isLoading,
-    getHiddenAds,
-    getAds,
-    getAdsTitle,
-    getHiddenAdsTile,
-  } = useContext(MainContext);
+  let { ads, setAds } = useContext(MainContext);
+  const BASE_URL_OPEN = "http://127.0.0.1:8000/ads/?";
+  const BASE_URL = "/ads/?";
+  let api = useAxios();
 
   useEffect(() => {
-    setIsLoading(true);
-    user && ad
-      ? getHiddenAdsTile(page, ad)
-          .then((response) => {
-            setAds(response.data.results);
-            setPageQty(Math.round(response.data.count / 4));
-          })
-          .catch((error) => console.log("error", error))
-          .finally(() => setTimeout(() => setIsLoading(false), 500))
-      : user
-      ? getHiddenAds(page)
-          .then((response) => {
-            setAds(response.data.results);
-            setPageQty(Math.round(response.data.count / 4));
-          })
-          .catch((error) => console.log("error", error))
-          .finally(() => setTimeout(() => setIsLoading(false), 500))
-      : ad.length
-      ? getAdsTitle(ad, page)
-          .then((data) => {
-            setAdsDefault(data.results);
-            setPageQty(Math.round(data.count / 4));
-          })
-          .catch((error) => console.log("error", error))
-          .finally(() => setTimeout(() => setIsLoading(false), 500))
-      : getAds(page)
-          .then((data) => {
-            setAdsDefault(data.results);
-            setPageQty(Math.round(data.count / 4));
-          })
-          .catch((error) => console.log("error", error))
-          .finally(() => setTimeout(() => setIsLoading(false), 500));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, user, ad, props.history]);
+    user ? getAllAds() : getAds();
+  }, [page, props.history, user]);
 
-  useEffect(() => {
-    setPage(props.location.search?.split("=")[1] || 1);
-  }, [ad.length, props.location.search]);
+  const getAllAds = async () => {
+    const response = await api.get(BASE_URL + `&page=${page}`);
 
-  const allAds = user ? ads : adsDefault;
+    if (response.status === 200) {
+      setAds(response.data.results);
+      setPageQty(Math.round(response.data.count / 3.2));
+      if (Math.round(response.data.count / 3.2) < page) {
+        setPageQty(1);
+        props.history.replace("/");
+      } else if (response.status === 500) {
+        console.log("На сервере произошел сбой");
+      } else {
+        console.log(response.status);
+      }
+    }
+  };
+
+  const getAds = async () => {
+    const response = await fetch(BASE_URL_OPEN + `&page=${page}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    let data = await response.json();
+
+    if (response.status === 200) {
+      setAdsDefault(data.results);
+      setPageQty(Math.round(data.count / 3.2));
+      if (Math.round(data.count / 3.2) < page) {
+        setPage(1);
+        props.history.replace("/");
+      }
+    } else if (response.status === 500) {
+      console.log("На сервере произошел сбой");
+    } else {
+      console.log(response.status);
+    }
+  };
+
+  const filteredAds = user ? ads : adsDefault;
+
+  //function handleFilteredAds(ad) {
+  //return filteredAds.filter((value) =>
+  // value.title.toLowerCase().includes(ad.toLowerCase())
+  //);
+  //}
+
   return (
-    <main className="main">
+    <main className="Main">
       <Promo
+        Pagination={Pagination}
+        PaginationItem={PaginationItem}
         pageQty={pageQty}
-        setPage={setPage}
         page={page}
-        ad={ad}
-        setAd={setAd}
-        user={user}
+        setPage={setPage}
       />
-      {isLoading ? (
-        <Preloader />
-      ) : allAds.length === 0 ? (
-        <p className="error-paragraph">По Вашему запросу ничего не найденно</p>
-      ) : (
-        <Cards ads={user ? ads : adsDefault} />
-      )}
+      <Cards ads={filteredAds} />
     </main>
   );
 }

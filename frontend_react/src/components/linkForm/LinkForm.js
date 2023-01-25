@@ -1,20 +1,22 @@
 import React from "react";
 
 function LinkForm(props) {
+  console.log(props.onSubmit);
   return (
-    <main className="linkForm">
-      <form className="linkForm__form">{props.children}</form>
+    <main className="LinkForm">
+      <form className="LinkForm__form" onSubmit={props.onSubmit}>
+        {props.children}
+      </form>
       <button
-        onClick={props.onClick}
-        className={`linkForm__button ${
-          props.error ? "linkForm__button-disabled" : ""
+        className={`LinkForm__button ${
+          props.error ? "Comment__button_disabled" : ""
         }`}
         disabled={props.disabled}
         type="submit"
       >
         {props.buttonName}
       </button>
-      <div className="linkForm__inputHidden linkForm__inputError"></div>
+      <div className="LinkForm__inputHidden LinkForm__inputError"></div>
     </main>
   );
 }

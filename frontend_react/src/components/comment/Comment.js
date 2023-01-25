@@ -1,94 +1,105 @@
 import React, { useState, useEffect, useContext } from "react";
 import MainContext from "../../context/MainContext";
 import AuthContext from "../../context/AuthContext";
+import useAxios from "../../utils/useAxios";
 import Buttons from "../buttons/Buttons";
 import EditCommentPopup from "../editCommentPopup/EditCommentPopup";
-import defaultImg from "../../images/greg-rakozy-oMpAz-DN-9I-unsplash.jpg";
 
 function Comment(comment, { setComments }) {
-  const [getComm, setGetComm] = useState({});
-  const [isComPopupOpen, setIsComPopupOpen] = useState(false);
-  const { getComment, deleteComment, editComment } = useContext(MainContext);
-  const { user } = useContext(AuthContext);
-  const currentCommentid = comment.commentId;
+  const [getComment, setGetComment] = useState({});
+  const { handleEditCommPopupOpen, closePopup, isComPopupOpen } =
+    useContext(MainContext);
+  const { authTokens, user } = useContext(AuthContext);
+  let api = useAxios();
 
   useEffect(() => {
-    getComment(comment.adId, comment.commentId)
-      .then((res) => {
-        setGetComm(res.data);
-      })
-      .catch((error) => console.log("error", error));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [comment.adId, comment.commentId, comment]);
+    handleGetComment();
+  }, [user]);
 
-  const handleEditComment = (data) => {
-    editComment(comment.adId, comment.commentId, data)
-      .then((res) => {
-        window.location.reload();
-        setGetComm(res.data);
-      })
-      .catch((error) => console.log("error", error));
+  const handleGetComment = async () => {
+    const response = await api.get(
+      `/ads/${comment.adId}/comments/${comment.commentId}/`
+    );
+    if (response.status === 200) {
+      setGetComment(response.data);
+    }
   };
 
-  const onDelete = (e) => {
+  const editComment = async (e) => {
     e.preventDefault();
-    deleteComment(comment.adId, comment.commentId)
-      .then(() => {
-        window.location.reload();
-        setComments((comments) =>
-          comments.filter((i) => i.id !== comment.commentId)
-        );
-      })
-      .catch((error) => console.log("error", error));
+    let response = await fetch(
+      `http://127.0.0.1:8000/ads/${comment.adId}/comments/${comment.commentId}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + String(authTokens.access),
+        },
+        body: JSON.stringify({
+          text: e.target.text.value,
+        }),
+      }
+    );
+    let data = await response.json();
+
+    if (response.status === 200) {
+      setGetComment(data);
+      window.location.reload();
+    } else if (response.statusText === "Unauthorized") {
+      console.log("error!");
+    }
   };
 
-  const handleEditCommPopupOpen = () => {
-    setIsComPopupOpen(true);
-  };
+  const deleteComment = async () => {
+    let response = await fetch(
+      `http://127.0.0.1:8000/ads/${comment.adId}/comments/${comment.commentId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + String(authTokens.access),
+        },
+      }
+    );
 
-  const closePopup = () => {
-    setIsComPopupOpen(false);
+    if (response.status === 204) {
+      window.location.reload();
+      setComments((comments) =>
+        comments.filter((i) => i.id !== comment.commentId)
+      );
+    } else if (response.statusText === "Unauthorized") {
+      console.log("error!");
+    }
   };
 
   return (
-    <li className="comment" key={comment.commentId}>
-      <div className="comment-box">
-        {comment.img ? (
-          <img src={comment.img} alt="user-img" className="comment-img" />
-        ) : (
-          <img src={defaultImg} alt="user-img" className="comment-img" />
-        )}
+    <>
+      <li className="comment" key={comment.pk}>
         <p className="comment-text comment__author-text">
           {comment.authorName}
         </p>
-      </div>
-      <div className="commentBox">
-        <p className="comment-text comment-message">{comment.text}</p>
-        {user.user_id === comment.userId ? (
-          <Buttons
-            className="comment-buttons"
-            classButton="comment-button"
-            onOpen={
-              currentCommentid === getComm.pk ? handleEditCommPopupOpen : null
-            }
-            onSubmit={onDelete}
-            key={comment.pk}
-          />
-        ) : null}
-        <EditCommentPopup
-          onClose={closePopup}
-          isOpen={isComPopupOpen}
-          id={comment.adId}
-          getComm={getComm}
-          handleEdit={handleEditComment}
-          userId={user.user_id}
-          commentUserId={comment.userId}
-          commentId={comment.commentId}
-          currentComId={getComm.pk}
-          key={comment.pk}
-        />
-      </div>
-    </li>
+        <div className="commentBox">
+          <p className="comment-text comment-message">{comment.text}</p>
+          {user.user_id === comment.userId ? (
+            <Buttons
+              className="comment-buttons"
+              classButton="comment-button"
+              onOpen={handleEditCommPopupOpen}
+              onSubmit={deleteComment}
+            />
+          ) : null}
+        </div>
+      </li>
+      <EditCommentPopup
+        onClose={closePopup}
+        isOpen={isComPopupOpen}
+        getComment={getComment}
+        text={getComment.text}
+        id={comment.adId}
+        editComment={editComment}
+        setGetComment={setGetComment}
+      />
+    </>
   );
 }
 
